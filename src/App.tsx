@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 
 interface Message {
@@ -9,6 +9,17 @@ interface Message {
 const Chat: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -16,6 +27,7 @@ const Chat: React.FC = () => {
     const userMessage: Message = { sender: "You", text: input };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
+    setIsTyping(true); // Show typing dots
 
     try {
       const response = await axios.post("http://localhost:5000/api/message", {
@@ -32,6 +44,8 @@ const Chat: React.FC = () => {
         ...prev,
         { sender: "Assistant", text: "Sorry, something went wrong." },
       ]);
+    } finally {
+      setIsTyping(false); // Hide typing dots
     }
   };
 
@@ -45,7 +59,7 @@ const Chat: React.FC = () => {
             key={idx}
             className={`flex ${
               msg.sender === "You" ? "justify-end" : "justify-start"
-            }`}
+            } fade-slide-in`} // 👈 animation here
           >
             <div
               className={`px-4 py-2 rounded-lg text-sm max-w-xs ${
@@ -58,6 +72,19 @@ const Chat: React.FC = () => {
             </div>
           </div>
         ))}
+
+        {/* Typing Indicator */}
+        {isTyping && (
+          <div className="flex justify-start">
+            <div className="typing-dots bg-gray-200 px-3 py-2 rounded-lg">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+        )}
+
+        <div ref={messagesEndRef} />
       </div>
 
       <div className="flex items-center">
