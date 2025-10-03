@@ -1,8 +1,9 @@
-<<<<<<< HEAD
+
 # xsanitaz-virtual-assistance
 xsanitaz-virtual-assistance
-=======
-# Getting Started with Create React App
+
+# culturally sensitive conversational agent to help young people cope with depression/anxiety and other related mental health challenges. 
+
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
