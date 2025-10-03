@@ -2,6 +2,7 @@
   "name": "xsanitaz-virtual-assistance",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "dependencies": {
     "@craco/craco": "^7.1.0",
     "@headlessui/react": "^2.2.9",
@@ -14,7 +15,7 @@
     "@types/node": "^16.18.126",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
-    "type": "module",
+    
     "axios": "^1.12.2",
     "https-browserify": "^1.0.0",
     "openai": "^6.1.0",
