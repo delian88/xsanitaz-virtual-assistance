@@ -3,7 +3,9 @@ import axios from "axios";
 
 interface Message {
   sender: "You" | "Assistant";
-  text: string;
+  text?: string;
+  fileUrl?: string;
+  fileType?: string;
 }
 
 const Chat: React.FC = () => {
@@ -27,7 +29,7 @@ const Chat: React.FC = () => {
     const userMessage: Message = { sender: "You", text: input };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
-    setIsTyping(true); // Show typing dots
+    setIsTyping(true);
 
     try {
       const response = await axios.post("http://localhost:5000/api/message", {
@@ -42,33 +44,99 @@ const Chat: React.FC = () => {
     } catch (error) {
       setMessages((prev) => [
         ...prev,
-        { sender: "Assistant", text: "Sorry, something went wrong." },
+        { sender: "Assistant", text: "Sorry, backend inetegration in progress,please check back tomorrow" },
       ]);
     } finally {
-      setIsTyping(false); // Hide typing dots
+      setIsTyping(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const localUrl = URL.createObjectURL(file);
+    const userFileMessage: Message = {
+      sender: "You",
+      fileUrl: localUrl,
+      fileType: file.type,
+    };
+    setMessages((prev) => [...prev, userFileMessage]);
+    setIsTyping(true);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await axios.post("http://localhost:5000/api/message", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      const assistantMessage: Message = {
+        sender: "Assistant",
+        text: response.data.reply || "File received successfully!",
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
+    } catch (error) {
+      setMessages((prev) => [
+        ...prev,
+        { sender: "Assistant", text: "Sorry, file upload failed." },
+      ]);
+    } finally {
+      setIsTyping(false);
     }
   };
 
   return (
     <div className="max-w-2xl mx-auto mt-10 p-4 bg-white shadow-md rounded-lg h-[85vh] flex flex-col">
-      <h2 className="text-xl font-bold text-blue-700 mb-4">xSanitaz Virtual Assistant</h2>
+      <h2 className="text-xl font-bold text-blue-700 mb-4">
+        xSanitaz Virtual Assistant
+      </h2>
 
-      <div className="flex-1 overflow-y-auto mb-4 space-y-2 px-2">
+      {/* Chat area */}
+      <div className="flex-1 overflow-y-auto mb-4 space-y-3 px-2">
         {messages.map((msg, idx) => (
           <div
             key={idx}
             className={`flex ${
               msg.sender === "You" ? "justify-end" : "justify-start"
-            } fade-slide-in`} //  animation here
+            } fade-slide-in`}
           >
             <div
-              className={`px-4 py-2 rounded-lg text-sm max-w-xs ${
+              className={`px-4 py-2 rounded-lg text-sm max-w-xs break-words ${
                 msg.sender === "You"
                   ? "bg-blue-500 text-white"
                   : "bg-gray-200 text-gray-800"
               }`}
             >
-              {msg.text}
+              {msg.text && <p>{msg.text}</p>}
+
+              {msg.fileUrl && (
+                <>
+                  {msg.fileType?.startsWith("image/") ? (
+                    <img
+                      src={msg.fileUrl}
+                      alt="Uploaded"
+                      className="mt-2 w-40 rounded-md"
+                    />
+                  ) : msg.fileType?.startsWith("audio/") ? (
+                    <audio controls className="mt-2 w-48">
+                      <source src={msg.fileUrl} type={msg.fileType} />
+                    </audio>
+                  ) : (
+                    <a
+                      href={msg.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-100 underline mt-2 block"
+                    >
+                      {msg.fileUrl.split("/").pop()}
+                    </a>
+                  )}
+                </>
+              )}
             </div>
           </div>
         ))}
@@ -87,14 +155,28 @@ const Chat: React.FC = () => {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Input and upload controls */}
       <div className="flex items-center">
+        <label
+          htmlFor="file-upload"
+          className="px-3 py-2 bg-gray-100 border border-gray-300 rounded-l-md cursor-pointer hover:bg-gray-200"
+        >
+          📎
+        </label>
+        <input
+          id="file-upload"
+          type="file"
+          className="hidden"
+          onChange={handleFileUpload}
+        />
+
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           placeholder="Type a message..."
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="flex-1 px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
         <button
           onClick={sendMessage}
