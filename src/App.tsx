@@ -15,8 +15,8 @@ const Chat: React.FC = () => {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Get API URL from environment variable with local fallback
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://xsanitaz-virtual-assistance-backend.onrender.com/api/message";
+  // FIXED: Remove /api/message from the base URL
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://xsanitaz-virtual-assistance-backend.onrender.com";
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
