@@ -15,6 +15,9 @@ const Chat: React.FC = () => {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Get API URL from environment variable with local fallback
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://xsanitaz-virtual-assistance-backend.onrender.com/api/message";
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -32,7 +35,7 @@ const Chat: React.FC = () => {
     setIsTyping(true);
 
     try {
-      const response = await axios.post("http://localhost:5000/api/message", {
+      const response = await axios.post(`${API_URL}/api/message`, {
         message: input,
       });
 
@@ -42,9 +45,13 @@ const Chat: React.FC = () => {
       };
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
+      console.error("Error sending message:", error);
       setMessages((prev) => [
         ...prev,
-        { sender: "Assistant", text: "Sorry, backend inetegration in progress,please check back tomorrow" },
+        { 
+          sender: "Assistant", 
+          text: "Sorry, I'm having trouble connecting right now. Please try again later." 
+        },
       ]);
     } finally {
       setIsTyping(false);
@@ -68,7 +75,7 @@ const Chat: React.FC = () => {
     formData.append("file", file);
 
     try {
-      const response = await axios.post("http://localhost:5000/api/message", formData, {
+      const response = await axios.post(`${API_URL}/api/message`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -80,9 +87,13 @@ const Chat: React.FC = () => {
       };
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
+      console.error("Error uploading file:", error);
       setMessages((prev) => [
         ...prev,
-        { sender: "Assistant", text: "Sorry, file upload failed." },
+        { 
+          sender: "Assistant", 
+          text: "Sorry, file upload is currently unavailable." 
+        },
       ]);
     } finally {
       setIsTyping(false);
